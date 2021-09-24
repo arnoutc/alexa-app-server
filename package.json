@@ -19,23 +19,23 @@
   },
   "license": "MIT",
   "dependencies": {
-    "alexa-app": "^3.2.0",
-    "bluebird": "^3.4.7",
-    "body-parser": "~1.16.0",
-    "ejs": "~2.5.5",
-    "express": "~4.14.1",
+    "alexa-app": "^4.2.3",
+    "bluebird": "^3.7.2",
+    "body-parser": "~1.19.0",
+    "ejs": "~3.1.6",
+    "express": "~4.17.1",
     "hotswap": "^1.1.0",
     "lodash.defaults": "^4.2.0"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
-    "coveralls": "^2.11.15",
-    "danger": "0.11.4",
+    "chai": "^4.3.4",
+    "coveralls": "^3.1.1",
+    "danger": "10.6.6",
     "istanbul": "0.4.5",
-    "mocha": "^3.2.0",
-    "sinon": "^1.17.7",
-    "sinon-chai": "^2.8.0",
-    "supertest": "^3.0.0",
-    "tcp-port-used": "0.1.2"
+    "mocha": "^9.1.1",
+    "sinon": "^11.1.2",
+    "sinon-chai": "^3.7.0",
+    "supertest": "^6.1.6",
+    "tcp-port-used": "1.0.2"
   }
 }
