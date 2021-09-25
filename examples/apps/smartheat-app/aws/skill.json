@@ -1,6 +1,6 @@
 {
   "languageModel": {
-      "invocationName": "thermostat",
+      "invocationName": "cator boiler",
       "intents": [
           {
               "name": "AMAZON.CancelIntent",

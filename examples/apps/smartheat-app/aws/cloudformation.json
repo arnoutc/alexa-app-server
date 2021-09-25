@@ -273,7 +273,7 @@
                 "FunctionName": {
                     "Fn::Sub": "${Environment}-SmartHome"
                 },
-                "Handler": "aws/smarthome-lambda.handler",
+                "Handler": "aws/lambda.handler",
                 "Runtime": "nodejs14.x",
                 "Timeout": 25,
                 "MemorySize": 512,
@@ -291,7 +291,14 @@
                         "TURN_OFF_CALLBACK_PAYLOAD": "smarthome",
                         "THERMOSTAT_TABLE_NAME": {
                             "Fn::Sub": "${Environment}-thermostats"
-                        }
+                        },
+                        "HOST": "https://salus-it500.com/",
+                        "PORT": 443,
+                        "USERNAME": "arnout.cator@gmail.com",
+                        "PASSWORD": "P1p0ca$$",
+                        "THERMOSTAT_TYPE": "it500",
+                        "DEFAULT_ON_TEMP": 21,
+                        "DEFAULT_OFF_TEMP": 21
                     }
                 }
             },
