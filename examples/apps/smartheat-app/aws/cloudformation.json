@@ -1,11 +1,18 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+        "Environment": {
+            "Type" : "String",
+            "Default": "prod",
+            "AllowedValues": ["dev", "test", "staging", "prod"]
+        }
+    },
     "Resources": {
         "tablethermostats": {
             "Type": "AWS::DynamoDB::Table",
             "Properties": {
                 "TableName": {
-                    "Fn::Sub": "${SH::Environment}-thermostats"
+                    "Fn::Sub": "${Environment}-thermostats"
                 },
                 "AttributeDefinitions": [
                     {
@@ -56,12 +63,12 @@
             "Type": "AWS::SNS::Topic",
             "Properties": {
                 "DisplayName": {
-                    "Fn::Sub": "Defer Set Temperature - ${SH::Environment}"
+                    "Fn::Sub": "Defer Set Temperature - ${Environment}"
                 },
                 "Subscription": [
                     {
                         "Endpoint": {
-                            "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${SH::Environment}-SmartHeat"
+                            "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-SmartHeat"
                         },
                         "Protocol": "lambda"
                     }
@@ -142,7 +149,7 @@
                     {
                         "Name": "TableName",
                         "Value": {
-                            "Fn::Sub": "${SH::Environment}-thermostats"
+                            "Fn::Sub": "${Environment}-thermostats"
                         }
                     }
                 ]
@@ -173,7 +180,7 @@
                     {
                         "Name": "TableName",
                         "Value": {
-                            "Fn::Sub": "${SH::Environment}-thermostats"
+                            "Fn::Sub": "${Environment}-thermostats"
                         }
                     }
                 ]
@@ -204,7 +211,7 @@
                     {
                         "Name": "TableName",
                         "Value": {
-                            "Fn::Sub": "${SH::Environment}-thermostats"
+                            "Fn::Sub": "${Environment}-thermostats"
                         }
                     },
                     {
@@ -239,7 +246,7 @@
                     {
                         "Name": "TableName",
                         "Value": {
-                            "Fn::Sub": "${SH::Environment}-thermostats"
+                            "Fn::Sub": "${Environment}-thermostats"
                         }
                     },
                     {
@@ -257,38 +264,40 @@
         "lambdaSmartHome": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
-                "RoleArn": {
-                    "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/${SH::Environment}-SmartHeat"
+                "Role": {
+                    "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/${Environment}-SmartHeat"
                 },
-                "Code": "ZipFile",
+                "Code": {
+                    "ZipFile": "> function handler(event, context){ console.log('dummy function'); } "
+                },
                 "FunctionName": {
-                    "Fn::Sub": "${SH::Environment}-SmartHome"
+                    "Fn::Sub": "${Environment}-SmartHome"
                 },
                 "Handler": "aws/smarthome-lambda.handler",
-                "Runtime": "Node.js 10.x",
+                "Runtime": "nodejs14.x",
                 "Timeout": 25,
                 "MemorySize": 512,
                 "Environment": {
                     "Variables": {
                         "HOLD_STRATEGY": "aws",
                         "DEFERRED_SET_TEMPERATURE_TOPIC": {
-                            "Fn::Sub": "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${SH::Environment}-defer-set-temperature"
+                            "Fn::Sub": "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${Environment}-defer-set-temperature"
                         },
                         "PROFILE_GATEWAY_TYPE": "aws",
                         "STEP_FUNCTION_ARN": {
-                            "Fn::Sub": "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${SH::Environment}-SmartHeat"
+                            "Fn::Sub": "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${Environment}-SmartHeat"
                         },
                         "THERMOSTAT_REPOSITORY": "dynamodb",
                         "TURN_OFF_CALLBACK_PAYLOAD": "smarthome",
                         "THERMOSTAT_TABLE_NAME": {
-                            "Fn::Sub": "${SH::Environment}-thermostats"
+                            "Fn::Sub": "${Environment}-thermostats"
                         }
                     }
-                },
-                "Metadata": {
-                    "AWS::CloudFormation::Designer": {
-                        "id": "fb5e650c-0cd5-429f-aa01-ab585e5c0a04"
-                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "fb5e650c-0cd5-429f-aa01-ab585e5c0a04"
                 }
             }
         },
@@ -296,7 +305,7 @@
             "Type": "AWS::StepFunctions::StateMachine",
             "Properties": {
                 "StateMachineName": {
-                    "Fn::Sub": "${SH::Environment}-SmartHeat"
+                    "Fn::Sub": "${Environment}-SmartHeat"
                 },
                 "DefinitionString": {
                     "Fn::Join": [
@@ -305,7 +314,7 @@
                             "{",
                             "    \"Comment\": \"Calls thermostat function after a hold time\",",
                             "    \"StartAt\": \"WaitFor\",",
-                            "    \"States\": {,",
+                            "    \"States\": {",
                             "        \"WaitFor\": {",
                             "            \"Type\": \"Wait\",",
                             "            \"SecondsPath\": \"$.duration\",",
@@ -314,7 +323,7 @@
                             "        \"Callback\": {",
                             "            \"Type\": \"Task\",",
                             {
-                                "Fn::Sub": "            \"Resource\": \"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${SH::Environment}-SmartHome\","
+                                "Fn::Sub" : "            \"Resource\": \"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-SmartHome\","
                             },
                             "            \"End\": true",
                             "        }",
@@ -327,121 +336,121 @@
                     "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/service-role/StatesExecutionRole-${AWS::Region}"
                 }
             }
-        },
-        "Description": "SmartHeat Stack (experimental)",
-        "Metadata": {
-            "AWS::CloudFormation::Designer": {
-                "b9c72dc1-7343-411f-ab92-ae601cab2041": {
-                    "size": {
-                        "width": 60,
-                        "height": 60
-                    },
-                    "position": {
-                        "x": 60,
-                        "y": 90
-                    },
-                    "z": 1,
-                    "embeds": []
+        }
+    },
+    "Description": "SmartHeat Stack (experimental)",
+    "Metadata": {
+        "AWS::CloudFormation::Designer": {
+            "b9c72dc1-7343-411f-ab92-ae601cab2041": {
+                "size": {
+                    "width": 60,
+                    "height": 60
                 },
-                "bb62da92-7f7d-4b55-a97e-b879572380d1": {
-                    "size": {
-                        "width": 60,
-                        "height": 60
-                    },
-                    "position": {
-                        "x": 180,
-                        "y": 90
-                    },
-                    "z": 1,
-                    "embeds": []
+                "position": {
+                    "x": 60,
+                    "y": 90
                 },
-                "23eb40ce-f32a-4ba5-adae-961a5d096b2d": {
-                    "size": {
-                        "width": 60,
-                        "height": 60
-                    },
-                    "position": {
-                        "x": 60,
-                        "y": 210
-                    },
-                    "z": 1,
-                    "embeds": []
+                "z": 1,
+                "embeds": []
+            },
+            "bb62da92-7f7d-4b55-a97e-b879572380d1": {
+                "size": {
+                    "width": 60,
+                    "height": 60
                 },
-                "84041659-769d-4f60-a97c-e90829718374": {
-                    "size": {
-                        "width": 60,
-                        "height": 60
-                    },
-                    "position": {
-                        "x": 180,
-                        "y": 210
-                    },
-                    "z": 1,
-                    "embeds": []
+                "position": {
+                    "x": 180,
+                    "y": 90
                 },
-                "6f79a9e1-51c7-4253-903b-f0a619b5651c": {
-                    "size": {
-                        "width": 60,
-                        "height": 60
-                    },
-                    "position": {
-                        "x": 300,
-                        "y": 90
-                    },
-                    "z": 1,
-                    "embeds": []
+                "z": 1,
+                "embeds": []
+            },
+            "23eb40ce-f32a-4ba5-adae-961a5d096b2d": {
+                "size": {
+                    "width": 60,
+                    "height": 60
                 },
-                "4d69c41f-8f64-4447-b213-6cf56383f775": {
-                    "size": {
-                        "width": 60,
-                        "height": 60
-                    },
-                    "position": {
-                        "x": 300,
-                        "y": 210
-                    },
-                    "z": 1,
-                    "embeds": [],
-                    "isassociatedwith": [
-                        "6f79a9e1-51c7-4253-903b-f0a619b5651c"
-                    ]
+                "position": {
+                    "x": 60,
+                    "y": 210
                 },
-                "0ecbe475-d7e0-4609-a2ee-ccbec315eebc": {
-                    "size": {
-                        "width": 60,
-                        "height": 60
-                    },
-                    "position": {
-                        "x": 60,
-                        "y": 330
-                    },
-                    "z": 1,
-                    "embeds": []
+                "z": 1,
+                "embeds": []
+            },
+            "84041659-769d-4f60-a97c-e90829718374": {
+                "size": {
+                    "width": 60,
+                    "height": 60
                 },
-                "ea9f2fff-7c85-4e96-88c3-79c6b26b7e14": {
-                    "size": {
-                        "width": 60,
-                        "height": 60
-                    },
-                    "position": {
-                        "x": -120,
-                        "y": 90
-                    },
-                    "z": 0,
-                    "embeds": []
+                "position": {
+                    "x": 180,
+                    "y": 210
                 },
-                "fb5e650c-0cd5-429f-aa01-ab585e5c0a04": {
-                    "size": {
-                        "width": 60,
-                        "height": 60
-                    },
-                    "position": {
-                        "x": -120,
-                        "y": 170
-                    },
-                    "z": 0,
-                    "embeds": []
-                }
+                "z": 1,
+                "embeds": []
+            },
+            "6f79a9e1-51c7-4253-903b-f0a619b5651c": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 300,
+                    "y": 90
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "4d69c41f-8f64-4447-b213-6cf56383f775": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 300,
+                    "y": 210
+                },
+                "z": 1,
+                "embeds": [],
+                "isassociatedwith": [
+                    "6f79a9e1-51c7-4253-903b-f0a619b5651c"
+                ]
+            },
+            "0ecbe475-d7e0-4609-a2ee-ccbec315eebc": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 60,
+                    "y": 330
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "ea9f2fff-7c85-4e96-88c3-79c6b26b7e14": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": -120,
+                    "y": 90
+                },
+                "z": 0,
+                "embeds": []
+            },
+            "fb5e650c-0cd5-429f-aa01-ab585e5c0a04": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": -120,
+                    "y": 170
+                },
+                "z": 0,
+                "embeds": []
             }
         }
     }
